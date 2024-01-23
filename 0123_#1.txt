@@ -448,17 +448,33 @@ alter table professor rename column hpage to homepage;
 alter table professor add totsal varchar2(20);
 
 --14.위의 totsal 열에 pay와 bonus를 더하여 데이터를 추가하시오
-insert into professor (totsal) values(seq_professon.nextval, 'pay+bonus');
+update professor set totsal = pay+ NVL(bonus,0) where totsal is NULL;
+
 
 --15. dept 테이블에서 40번 부서의 위치가 seattle로 이동. 변경하시오.
+update dept set loc='seattle' where deptno=40;
+select * from dept;
 
 --16.dept2의 컬럼AREA를 LOC로 변경하시오
+alter table dept2 rename column area to loc;
+select * from dept2;
 
 --17.member테이블에서 id가 bobby인사람을 삭제하시오
+delete from member where id = 'bobby';
+select * from member;
 
---18.emp에서 직무별 평균급여,총급여,최고급여,최저굽여를 구하시오
+
+--18.emp에서 직무별 평균급여,총급여,최고급여,최저급여를 구하시오
+select job 직무, round(avg(sal),2) , sum(sal)총급여, max(sal) 최고급여, min(sal) 최저급여
+from emp
+group by job;
+
 
 --19.emp에서 이름이 S로 시작하는 사람과 같은 부서사람의 부서번호와 이름을 출력하시오
+select deptno 부서번호, ename 이름 from emp where deptno in (select deptno from emp where ename like 'S%');
 
 --20.Member테이블에 한명의 데이터를 임의로 추가하세요(전체열 추가)
+insert into member values(1004, '김비빔', '1234567890123','d1234','song','엄마이름?','쿠유딩');
+
+
 

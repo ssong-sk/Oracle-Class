@@ -1,0 +1,464 @@
+
+--서브쿼리(쿼리안에 또 다른 쿼리 담김)
+--2가지 질문??
+--select 컬럼1, 컬럼2 from 테이블 where 조건연산자(select 컬럼명  from 테이블명 where 조건)
+
+--메인쿼리(서브쿼리)
+--Q. emp에서  SCOTT보다 급여를 많이 받는 사람의 이름과 급여를 출력하시오.
+select * from emp;
+select ename 이름, sal 급여
+from emp 
+where sal > (select sal from emp where ename = 'SCOTT'); --(서브쿼리가 됨)
+
+--Q. emp에서  WARD보다 급여를 많이 받는 사람의 이름과 급여를 출력하시오.
+select ename 이름, sal 급여
+from emp 
+where sal > (select sal from emp where ename = 'WARD'); --(서브쿼리가 됨)
+
+--서브쿼리가 먼저 수행되서 결과값을 메인쿼리에 전달하고 그 값을 받아 메인쿼리 수행
+--서브쿼리에는 order by절은 못옴. 
+
+--emp에서 평균연봉보다 더 많이 받는 사람의 목록을 출력하라.
+select * from emp where sal > (select avg(sal) from emp);
+
+--emp에서 이름이 WArD인 사람의 MGR과 같은 값을 가진 사람의 목록을 구하기
+select * from emp where MGR = (select MGR from emp where ename = 'WARD'); 
+
+-student에서 4학년의 평균키보다 큰 사람의 이름, 키를 구하시오.
+select * from student;
+select name 이름, height 키 from student where height > (select avg(height) from student where grade = 4);
+
+--emp에서 s로 시작하는 이름을 가진사람과 같은부서사람의 부서번호와 이름을 출력하시오.
+select ename 이름, deptno 부서번호 from emp where deptno IN(select deptno from emp where ename LIKE 'S%');
+
+--emp에서 CLARK보다 늦게 입사한 사원들의 이름과 입사일을 구하시오.
+select ename 이름, hiredate 입사일 from emp where hiredate > (select hiredate from emp where ename = 'CLARK');
+
+
+
+===============================================================================================
+
+cmd _ teacher 
+
+Microsoft Windows [Version 10.0.19045.3803]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\승경>sqlplus
+
+SQL*Plus: Release 21.0.0.0.0 - Production on 화 1월 23 10:10:51 2024
+Version 21.3.0.0.0
+
+Copyright (c) 1982, 2021, Oracle.  All rights reserved.
+
+사용자명 입력: song
+비밀번호 입력:
+마지막 성공한 로그인 시간: 화 1월  23 2024 09:07:44 +09:00
+
+다음에 접속됨:
+Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production
+Version 21.3.0.0.0
+
+SQL> show user
+USER은 "SONG"입니다
+SQL> conn teacher/a1234;
+연결되었습니다.
+SQL> show user
+USER은 "TEACHER"입니다
+SQL> select * from tab;
+
+선택된 레코드가 없습니다.
+
+SQL> create table test(num number(5) primary key, name varchar2(20), score number(5,2), birth date);
+
+테이블이 생성되었습니다.
+
+SQL> select * from test
+  2
+SQL> select * from test;
+
+선택된 레코드가 없습니다.
+
+SQL> select * from tab;
+
+TNAME
+--------------------------------------------------------------------------------
+TABTYPE                     CLUSTERID
+-------------------------- ----------
+TEST
+TABLE
+
+
+SQL>
+
+
+
+
+=================================================================================================================================
+
+--test 테이블
+--primart key(not null + unique)
+
+--구조보기
+desc test;
+--test에 전체 데이터 insert
+insert into test values(1, '이민규', 68.2, '2015-12-25');
+
+--test  조회
+select * from test;
+
+--test에 일부 데이터 insert
+insert into test(num, name) values (5, '홍진화');
+
+--일부컬럼만 조회
+select num, name from test;
+
+--현재날짜로 추가
+insert into test values(3,'마동석',88,sysdate);
+
+--test 테이블에 나이 컬럼 추가
+--SQL > ALTER TABLE 테이블명 ADD 추가할 컴럼명, 데이터 타입;
+alter table test add age number(5);
+
+--주소(addr)를 저장 할 컬럼을 추가하는데 초깃값을 강남구 라고 지정
+alter table test add addr varchar2(30) default '강남구';
+
+insert into test (num, addr) values (7,'서울시 강남구');
+
+--add의 문자타입 늘려주기
+--테이블 컬럼의 타입변경
+--SQL > ALTER TABLE 테이블명 MODIFY 컬럼명 데이터타입;
+alter table test modify addr varchar2(70);
+
+--age 타입을 varchar2(10) 변경하고 초기값을 '22'살로 변경
+alter table test modify age varchar2(10) default '22';
+
+
+--일부만 넣어서 나이 22로 들어가는지 확인해보자!!
+insert into test (num, name, score, birth) values(3, '마동석', 77,sysdate);
+
+--num의 오름차순 출력
+select * from test order by num asc;
+
+--num의 내림차순 출력
+select * from test order by num desc;
+
+--age
+--SQL > ALTER TABLE 테이블명 BROP COLUMN 삭제할 컬럼명
+alter table test drop column age;
+
+--addr 컬럼삭제
+alter table test drop column addr;
+
+--birth를 birthday 수정하기
+--SQL > ALTER TABLE 테이블명 RENAME COLUMN OLD컬럼명 TO NEW 컬럼명;
+alter table test rename column birth to birthday;
+
+--score를 jumsoo로 변경
+alter table test rename column score to jumsoo;
+
+desc test; --구조보는 코딩
+
+commit; --저장하는 역할 (새로고침)
+
+--테이블 삭제
+drop table test;
+
+
+
+----------------------------------------------
+
+--시퀀스 기본으로 생성
+create sequence seql;
+
+--시퀀스 확인
+select * from seq;
+
+--다음시퀀스값을 발생시켜 콘솔에 출력
+select seql.nextval from dual;
+
+--현재 마지막 발생 시퀀스
+select seql.currval from dual;
+
+--seql 삭제
+drop sequence seql;
+
+
+------------------------------------------------
+--10부터 5씩 증가하는 시퀀스를 생성하기 -cacha값은 없애기
+create sequence seql start with 10 increment by 5 nocache;
+
+--시퀀스 발생
+select seql.nextval from dual;
+
+--시퀀스 수정, start with는 수정 불가, maxcalue 지정 후 그값까지 나오면 다시 처음부터 나오도록 나오게 할 때
+alter sequence seql increment by 10 maxvalue 100 cycle;
+
+
+--------------------------------------------------------------------------------------
+--seq1 : 시작값 5 증가값 2 끝 값 30 캐시 no cycle yse
+create sequence seq1 start with 5 increment by 2 maxvalue 30 nocache;
+
+--seq2 : 시작값 1, 증가값 2, 캐시 no
+create sequence seq2 start with 1 increment by 2 nocache;
+
+--seq3 : 시작값 1, 증가값 1, 캐스 no
+create sequence seq3 nocache; --시작 증가가 1이면 생략가능하다!!!
+
+--출력
+select seq1.nextval, seq2.nextval, seq3.nextval from dual; --nextval을 사용하여 다음 값 입력할 수 있다.
+
+--삭제
+drop sequence seq1;
+drop sequence seq2;
+drop sequence seq3;
+
+--------------------------------------------------------------------------------------------
+--시퀀스 생성
+create sequence seq_person;
+
+--테이블생성
+create table person(num number(5) primary key, pname varchar2(20),
+job varchar2(30), gender varchar2(10), age number(5), hp varchar2(20),
+birth date);
+
+--birth를 ipsaday로 변경
+alter table person rename column birth to ipsaday;
+
+--구조확인
+desc person;
+
+--조회연습을 위해서 인서트를 다양하게 넣어주기.(프로그래머, 교사, 엔지니어,
+insert into person values(seq_person.nextval,'유재석','개그맨','남자',40,'010-1157-2211','2021-01-01');
+insert into person values(seq_person.nextval,'김종국','가수','남자',38,'010-5841-1112','2021-01-05');
+insert into person values(seq_person.nextval,'하하','방송인','남자',35,'010-1111-1113','2021-01-08');
+insert into person values(seq_person.nextval,'송지효','배우','여자',32,'010-8791-1114','2021-02-01');
+insert into person values(seq_person.nextval,'이광수','개배우','남자',30,'010-1111-1115','2021-03-01');
+insert into person values(seq_person.nextval,'주영환','프로그래머','남자',40,'010-1111-1116','2021-05-01');
+insert into person values(seq_person.nextval,'이미라','선생님','여자',55,'010-1111-1222','2023-05-01');
+insert into person values(seq_person.nextval,'미미미','교사','여자',50,'010-1111-2111','2024-01-01');
+insert into person values(seq_person.nextval,'김태희','발레리나','여자',30,'010-2311-1111','2022-06-01');
+insert into person values(seq_person.nextval,'강동원','건축가','남자',25,'010-5411-1111','2022-05-01');
+
+--최종 인원 확인
+select count(*) from person;
+
+--이름 오른차순으로 출력
+select * from person order by pname;
+
+--나이 역순으로 출력
+select * from person order by age desc;
+select * from person order by 5 desc; --컬러명 대신 열번호도됨
+
+--gender 오름차순 같은경우 이름 오름차순
+select * from person order by gender, pname;
+
+--직업만 출력
+select job 직업 from person;
+
+--직업 중복 제거후 출력
+select distinct job from person; 
+
+--이름이 김태희인 사람 출력
+select pname 이름 from person where pname = '김태희';
+
+--이름이 두번째 글자가 미인사람 출력
+select pname 이름 from person where pname LIKE '_미%';
+
+--성이 김씨인 사람 출력
+select pname 이름 from person where pname LIKE '김%';
+
+--핸드폰 마지막 네자리가 1111로 끝나는 사람
+select pname 이름, hp 핸드폰 from person where hp LIKE '%1111';
+
+--입사월이 1월인 사람만 출력
+select pname 이름, ipsaday 입사 from person where to_char(ipsaday, 'mm') = '01';
+
+--입사년도가 2024년인 사람 출력
+select pname 이름, ipsaday 입사 from person where to_char(ipsaday, 'yyyy') = '2024';
+
+--나이가 25~30 사람인 사람만 조회(2가지)
+select * from person  where age between 25 and 30;
+select * from person where age >= 25 and age <= 30;
+
+--직업이 교사 이거나 프로그래머인 사람출력 (2가지)
+select * from person where job = '교사' or job = '프로그래머';
+select * from person where job in('교사','프로그래머');
+
+--성이 김씨이거나 이씨인 사람을 조회하시오
+select * from person where pname like '김%' OR pname like '이%';
+
+--여자이면서 나이가 30세 이상인 사람 조회
+select * from person where gender = '여자' and age >= 30;
+
+--평균 나이 구하기
+select round(avg(age),2) from person;
+
+--평균 나이보다 많은 사람의 이름과 직업 나이를 구하시오.(서브쿼리)
+select pname 이름, job 직업, age 나이 from person where age > (select avg(age) from person);
+
+--person 의 테이블 복사본 생성하기
+create table person2 as select * from person;
+
+--3번의 직업과 나이 수정하기 ... 조건을 안쓸 경우 모든 데이터 수정이 되므로 조건을 필수로 해서 작업.
+update person2 set job = '개그맨', age = 25; 
+
+--위에서 잘못 수정한 데이터 원래대로 되돌리기
+Rollback;
+
+--3번 직업 나이 수정하기
+update person2 set job = '운동선수', age = 36 where num=3;
+
+--김씨이면서 교수인 사람의 젠더를 여자로 수정하기
+update person2 set gender = '여자' where pname LIKE '하%' and job = '방송인';
+
+--num이 8번인 사람의 직업을 프로게이머, 입사일 24/01/01 변경하기
+update person2 set job = '프로게이머', ipsaday = '2024/01/01' where num = 8;
+
+
+--최종저장
+commit;
+
+--삭제
+
+--num 5번 삭제
+delete from person2 where num = 5; --5번 삭제되어도 시퀀스 이므로 채워져서 번호가 당겨지지 않고 그번호 그대로 처리가됨. /삭제되면 그 번호만 그대로 삭제됨.
+
+--여자 중에서 나이가 33세 이상만 모두 삭제
+delete from person2 where gender = '여자' and age >= 33;
+
+--핸드폰 뒷자리가 1111인 사람의 나이를 30, 입사일 22/01/01 수정하시오.
+update person2 set age = 30, ipsaday = '2022/01/01' where hp like '%1111';
+
+--직업이 개그맨이거나 프로그래머인 사람 모두 삭제
+delete from person2 where job ='개그맨' or job = '프로그래머';
+
+
+
+--QA
+
+--컬럼을 추가하는데 주소 addr 30바이트 문자열로 추가하라(기본값을 서울시)
+alter table person2 add addr varchar2(30) default '서울시';
+
+--컬럼명 변경 hp ==> handphone
+alter table person2 rename column hp to handphone;
+--데이터 추가하는데 일부만 넣기(num, pname, gender, job)
+insert into person2 (num, pname, gender, job) values(seq_person.nextval, '전지현', '여자', '배우');
+
+--데이터 추가하는데 일부만 넣기(num, pname, addr, ipsaday)
+insert into person2 (num, pname, addr, ipsaday) values(seq_person.nextval, '김수현', '대구시', '2021-01-04');
+
+--null일 경우 정해진 값으로 출력하기 (NVL이용 직업이 NULL은 무직으로 출력, 나이가 null인 경우 20으로 출력) 이름, 직업, 나이출력
+select pname 이름, NVL(job, '무직') 직업, NVL(age, '20') 나이 from person2;
+
+--job이 null인 경우 ****로 출력
+select pname 이름, NVL(handphone, '****') 핸드폰번호 from person2;
+
+
+
+select * from person2;
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+--Group by (특정 조건으로 세부적인 그룹화 하기)
+--professor 테이블에서 학과별로 교수들의 평균급여를 출력하시오
+--Group by절에 들어간 컬럼을 조회할 때 첫번째 컬럼에 둔다.
+select deptno 학과, avg(pay) 평균급여 
+from professor
+group by deptno;
+
+--Q. professor 테이블에서 직급별로 교수들의 평균급여를 출력하시오.
+select position 직급, round(avg(pay),2) 평균급여 
+from professor
+group by position;
+
+--Q. professor 테이블에서 학과별, 직급별로 교수들의 평균급여를 출력하시오.
+select deptno, position, avg(pay)
+from professor
+group by deptno, position;
+
+--Q. student에서 학년별 평균키와 최고 몸무게를 구하시오.
+select grade 학년, avg(height), max(weight)
+from student
+group by grade;
+
+--Q. 교수 직급별로 최고급여와 최고 보너스를 조회하시오.
+select position 직급별, max(pay), max(bonus)
+from professor
+group by position;
+
+--Q. emp에서 직군별로 동일한 직군을 가진 사원 수를 구하기.
+select job 직군, count(*) 사원수
+from emp
+group by job;
+
+--Q. emp에서 직무별 sal 평균급여를 구하시오
+select job 직무, round(avg(sal),2) "평균 급여" --이름을 띄어띄기 하면 ""(대 따움표) / 붙이면 ''{소따움표)
+from emp
+group by job;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+--[연습문제 _ 0123]
+
+--1. emp에서 이름이 A나 B로 시작하는 사람 출력
+select ename 이름 from emp where ename LIKE  'A%' OR ename LIKE 'B%';
+
+--2. emp에서 이름2번째 글자가 a인사람 출력하시오
+select ename 이름 from emp where ename like '_A%';
+
+--3. emp에서 부서번호를 중복없이 출력하시오
+select distinct deptno from emp;
+
+--4. emp에서 mgr별로 인원수를 구하시오
+select mgr 번호, count(*) 인원수
+from emp
+group by mgr;
+
+--5. emp에서 job종류별로 sal의 평균급여와 최고급여를 구하시오.
+select job 직업, round(avg(sal),2) 평균급여, max(sal) 최고급여
+from emp
+group by job;
+
+--6. emp에서 sal의 평균보다 더 높은 사람의 이름, 급여를 출력하시오
+select ename 이름, sal 급여 from emp where sal > (select avg(sal) from emp);
+
+--7. emp에서 입사일이 4월인 사람만 이름, 입사일을 출력하시오.
+select ename 이름, hiredate 입사일 from emp where to_char(hiredate, 'mm') = '04';
+
+--8. ford의 급여와 동일하거나 더 많이 받는 사람의 사원명과 급여를 출력하시오.
+select ename 사원명, sal 급여 from emp where sal >= (select sal from emp where ename = 'FORD');
+
+--9.student 테이블에서 1전공이 101번인 학과의 평균 몸무게보다 많은 학생들의 이름과 몸무게를 출력하시오.
+select name 이름, weight 몸무게 from student where weight > (select avg(weight) from student where deptno1 = '101');
+
+--10. professor에서 주승재 교수보다 나중에 입사한 교수들의 이름과 급여 입사일을 출력하시오.
+select name 이름, pay 급여, hiredate 입사일 from professor where hiredate > (select hiredate from professor where name = '주승재');
+
+--11. professor 테이블에서 정교수들의 보너스를 일괄 200만원으로 수정하시오.
+update professor set bonus = 200;
+select * from professor;
+
+--12. professor 테이블에서 hpage열의 이름을 homepage로 수정하시오.
+alter table professor rename column hpage to homepage;
+
+--13. professor 테이블에 totsal열을 추가하시오
+alter table professor add totsal varchar2(20);
+
+--14.위의 totsal 열에 pay와 bonus를 더하여 데이터를 추가하시오
+insert into professor (totsal) values(seq_professon.nextval, 'pay+bonus');
+
+--15. dept 테이블에서 40번 부서의 위치가 seattle로 이동. 변경하시오.
+
+--16.dept2의 컬럼AREA를 LOC로 변경하시오
+
+--17.member테이블에서 id가 bobby인사람을 삭제하시오
+
+--18.emp에서 직무별 평균급여,총급여,최고급여,최저굽여를 구하시오
+
+--19.emp에서 이름이 S로 시작하는 사람과 같은 부서사람의 부서번호와 이름을 출력하시오
+
+--20.Member테이블에 한명의 데이터를 임의로 추가하세요(전체열 추가)
+

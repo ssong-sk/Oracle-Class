@@ -1,0 +1,222 @@
+
+--오라클 조인
+--1.outer join : 조건에 일치하지 않아도 출력
+--2.self join : 자신의 테이블과 조인하는것
+--3.inner join : 기본키(primary key)와 외부키(foreign key)를 사용해서 join (가장많이 사용*****************)
+
+--on delete cascade : 외부 키로 테이블이 연결되었다 하더라도 부모 테이블의 데이터를 삭제하면 자식 테이블의 데이터까지도 자동으로 삭제시켜 주는 기능
+
+drop table companysawon; -- 기존 테이블의 폴더를 삭제하는 방법
+
+
+--시퀀스 생성
+create sequence seq_shop;
+
+--shop테이블 (부모테이블)
+create table shop(num number(5) primary key, sangpum varchar2(30), color varchar2(30));
+
+--shop에 insert 상품 추가
+insert into shop values(seq_shop.nextval, '요가매트','핑크');
+insert into shop values(seq_shop.nextval, '아령','블랙');
+insert into shop values(seq_shop.nextval, '레깅스','베이지');
+insert into shop values(seq_shop.nextval, '요가나시','화이트');
+insert into shop values(seq_shop.nextval, '양말','블루');
+
+
+
+--cart1 테이블, 상품정보는 shop 테이블의 num값을 외부키로 지정한다
+--어느 키에나 primary키는 반드시 존재해야한다.  -> idx를 primary key로 나두고 외부 number키 값을 받아서 쓴다
+create table cart1(idx number(5) primary key,
+num number(5) constraint cart_fk_num references shop(num),
+cnt number(5), guipday date);
+
+--cart2테이블, 상품정보는 shop 테이블의 num값을 외부키로 지정한다.
+--부모테이블 상품을 지우면 그 상품과 연결된 카트를 자동으로 지워준다.
+create table cart2(idx number(5) primary key,
+num number(5), 
+cnt number(5), guipday date,
+constraint cart_frk2_num foreign key(num) references shop(num) on delete cascade); 
+
+--cart1에 상품추가, 1번 상품 카트 담기
+insert into cart1 values(seq_shop.nextval, 1, 2, sysdate); --1번 요가매트 / 수량
+
+--cart1에 상품추가, 5번 상품 카트 담기
+insert into cart1 values(seq_shop.nextval, 5, 10, sysdate); --1번 요가매트  / 수량
+
+--shop에 없는상품 담기
+insert into cart1 values(seq_shop.nextval, 6, 10, sysdate); --없는 상품오류 / shop에는 6번으로 담긴 값이 없기 떄문에 오류
+
+--cart2 담기...상품 3번 담기
+insert into cart2 values(seq_shop.nextval, 3, 4, sysdate);
+
+insert into cart2 values(seq_shop.nextval, 2, 2, sysdate);
+
+--최종저장
+commit;
+
+--cart1에는 1번 5번 상품이 추가 됨.
+
+--shop에서 1번 상품이 삭제되는지 확인 -> 무결성 제약조건(TEACHER.CART_FK_NUM)이 위배되었습니다- 자식 레코드가 발견
+delete from shop where num = 1;
+
+--4번상품은 아무도 안담았으므로 오류안난다.
+delete from shop where num = 4;
+
+--아까우니까 살린다.
+rollback;
+
+--cart2에는 2번 3번 상품이 담겨있다
+--cart2에 담긴 2번 상품이 있더라도 shop에서 2번 상품은 삭제가 됨. ->on delete cascade 설정했기 때문에 가능
+--cascade 설정으로 부모테이블의 데이터를 지우면 자식테이블의 데이터도 지워진다.
+delete from shop where num = 3;
+
+--join (합쳐서 출력하는것)을 위해서 cart2에 데이터 조금 더 추가하자
+insert into cart2 values(seq_shop.nextval,1,3, sysdate);
+insert into cart2 values(seq_shop.nextval,5,10, sysdate);
+insert into cart2 values(seq_shop.nextval,1,1, sysdate);
+insert into cart2 values(seq_shop.nextval,1,2, sysdate);
+
+
+--cart1에 담긴상품을 shop테이블과 join해서 자세히 출력해 보자
+--방법1
+select cart1.idx, shop.sangpum, shop.color, cart1.cnt, cart1.guipday
+from shop, cart1
+where shop.num = cart1.num;
+
+--방법2
+select c.idx, c.num, s.sangpum, s.color, c.cnt, c.guipday
+from shop s, cart1 c
+where s.num = c.num;
+
+--방법3 : join하는 테이블에 중복되지 않은 컬럼명은 앞에 테이블명 생략
+select idx, c.num, sangpum, color, cnt, guipday
+from shop s, cart1 c
+where s.num = c.num;
+
+--cart2 편한 방식으로 join출력해보자.
+select idx, c.num, sangpum, color, cnt, guipday
+from shop s, cart2 c
+where s.num = c.num;
+
+
+select * from shop;
+select * from cart1;
+select * from cart2;
+
+
+---------------------------------------------------------------------------------------------
+
+--foreign key & join
+
+--부모테이블 형성 / constraint 제약조건 설정
+create table board(bno number(3) constraint board_pk_bno primary key,
+writer varchar2(30), subject varchar2(50), writeday date);
+
+--board에 insert
+insert into board values(seq_sawon.nextval, '재슥이', '우리 모임관련', sysdate);
+insert into board values(seq_sawon.nextval, '기쁨이', '스터디모임', sysdate);
+insert into board values(seq_sawon.nextval, '명재야', '다이어트 관련부록', sysdate);
+insert into board values(seq_sawon.nextval, '먹는게 희망', '점심먹자오늘', sysdate);
+insert into board values(seq_sawon.nextval, '늘피곤', '오늘 저녁에 만나자', sysdate);
+
+--answer이라는 테이블 생성, bno는 board의 bno를 외부키로 설정하고
+--부모테이블 글 지우면 그글에 달린 댓글은 자동으로 삭제되도록.....
+create table answer(num number(5) constraint answer_pk_num primary key,
+bno number(3) constraint answer_fk_bon references board(bno) on delete cascade,
+nickname varchar2(20), content varchar2(50));
+
+--원하는 글번호에 댓글 추가하기
+insert into answer values(seq_sawon.nextval, 21, '명수', '야 나도 나가도 되니?');
+insert into answer values(seq_sawon.nextval, 22, '살찐토끼', '다이어트 관심있어여ㅜㅜ');
+insert into answer values(seq_sawon.nextval, 23, '다이어트', '저도 부록좀 보내주시겠어요?');
+insert into answer values(seq_sawon.nextval, 24, '24', '점심메뉴는 짜장면 어때?');
+insert into answer values(seq_sawon.nextval, 25, '나도피곤', '무플방지......');
+
+commit;
+
+--join에서 출력
+--bno(글번호)   writer(작성자)   subject(제목)   nickname(댓글단사람)   content(댓글내용)   writeday(원글작성날짜)
+select b.bno as 글번호, writer as 작성자, subject as 제목, nickname as 댓글단사람, content as 댓글내용, writeday as 원글작성날짜
+from board b, answer a
+where b.bno = a.bno;
+
+--원글 21번 삭제 후 answer table 댓글 사라지는지 확인
+delete from board where bno = 21;
+
+--2개 테이블 삭제 (자식테이블부터 삭제 후 부모테이블 삭제)
+drop table answer;
+drop table board;
+
+
+select * from board;
+select * from answer;
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+--[문제]
+--배민이나 요기요 처럼 음식점, 주문
+--fno 번호, food name 음식명, price 가격, f shopname 매장명, shop loc 매장위치
+--3가지로 출력하기.
+
+--상속 테이블
+--order_num(시퀀스) /order_name /fno(음식번호_외래키) / order daar 
+
+--시퀀스 만들기
+create sequence seq_food;
+
+--부모테이블 형성 / constraint 제약조건 설정
+create table foodshop(fno number(5) constraint food_pk_fno primary key,
+food_name varchar2(30), price varchar2(20), f_shop_name varchar2(30), shop_loc varchar2(20));
+
+
+
+--foodshop에 insert 
+
+
+insert into foodshop values(seq_food.nextval, '스파게티', '18000', '스파게티 전문점', '서울시 강남구');
+insert into foodshop values(seq_food.nextval, '제육덮밥', '10000', '한식밥상', '서울시 용산구');
+insert into foodshop values(seq_food.nextval, '칼국수', '9000', '칼칼한', '서울시 송파구');
+insert into foodshop values(seq_food.nextval, '레몬에이드', '5000', '에이드전문', '서울시 종로구');
+insert into foodshop values(seq_food.nextval, '초코케이크', '6800', '스타벅스', '서울시 강남구');
+
+select * FROM foodshop;
+
+update foodshop
+set  f_shop_name = '양식전문'
+where fno = '81'
+
+
+--jumun 테이블 만들기 
+create table jumun(num number(5) constraint jumun_pk_num primary key,
+fno number(5) constraint jumun1_fk_fno references foodshop(fno) on delete cascade,
+order_name varchar2(20), order_addr varchar(30));
+
+
+
+--jumun에 상품추가, 1번 상품 카트 담기
+insert into jumun values(seq_food.nextval, 81, '유재석','서울시 용산구'); 
+insert into jumun values(seq_food.nextval, 82, '지석진','서울시 강남구'); 
+insert into jumun values(seq_food.nextval, 83, '김종국','서울시 종로구'); 
+insert into jumun values(seq_food.nextval, 84, '송지효','서울시 강남구'); 
+insert into jumun values(seq_food.nextval, 85, '하하','서울시 송파구'); 
+
+
+
+
+--join에서 출력
+--주문번호 음식번호 주문자 음식명 가격 상호명 상점위치 주문자 위치
+select j.num as 주문번호, f.fno as 음식번호, order_name as 주문자, food_name as 음식명, price as 가격, f_shop_name as 상호명, shop_loc as 가게위치, order_addr as 주문자위치
+from foodshop f, jumun j
+where f.fno = j.fno
+order by order_name;
+
+
+select * from foodshop;
+select * from jumun;
+drop table foodshop;
+drop table jumun;
+
+commit;
+
+
+
